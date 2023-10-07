@@ -1,0 +1,24 @@
+import numpy as np
+import math
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+def findPoint(pointP, pointC, radius):
+    vectorCP = np.array([pointP.x - pointC.x, pointP.y - pointC.y])
+    vectorCPPerp = np.array([vectorCP[1] * -1, vectorCP[0]])
+    vectorOP = np.array([pointP.x, pointP.y])
+    vectorOC = np.array([pointC.x, pointC.y])
+    d = math.sqrt((vectorCP[0])**2 + (vectorCP[1])**2)
+    vectorOT1 = vectorOC + (radius/d)**2 * vectorCP + (radius/d) * (math.sqrt(d**2-radius**2)/d) * vectorCPPerp
+    vectorOT2 = vectorOC + (radius/d)**2 * vectorCP - (radius/d) * (math.sqrt(d**2-radius**2)/d) * vectorCPPerp
+    print(vectorOT1)
+    print(vectorOT2)
+
+pointP = Point(3, 4)
+pointC = Point(9, 1)
+radius = math.sqrt(2)
+
+findPoint(pointP, pointC, radius)

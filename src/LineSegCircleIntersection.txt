@@ -1,0 +1,119 @@
+import math
+import numpy as np
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+def lineIntersectVector(pointOne, pointTwo, pointThree, pointFour):
+    vNum12 = np.linalg.det(np.array([[pointOne[0], pointOne[1]],[pointTwo[0], pointTwo[1]]]))
+    vNum34 = np.linalg.det(np.array([[pointThree[0], pointThree[1]],[pointFour[0], pointFour[1]]]))
+    vDenomx12 = np.linalg.det(np.array([[pointOne[0], 1], [pointTwo[0], 1]]))
+    vDenomx34 = np.linalg.det(np.array([[pointThree[0], 1], [pointFour[0], 1]]))
+    vDenomy12 = np.linalg.det(np.array([[pointOne[1], 1], [pointTwo[1], 1]]))
+    vDenomy34 = np.linalg.det(np.array([[pointThree[1], 1], [pointFour[1], 1]]))
+
+    vXNum = np.linalg.det(np.array([[vNum12, vDenomx12], [vNum34, vDenomx34]]))
+    vYNum = np.linalg.det(np.array([[vNum12, vDenomy12], [vNum34, vDenomy34]]))
+    vDenom = np.linalg.det(np.array([[vDenomx12, vDenomy12], [vDenomx34, vDenomy34]]))
+
+    result = np.array([vXNum / vDenom, vYNum / vDenom])
+    print(result)
+    return result
+
+def lineSegmentIntersectParam(pointOne, pointTwo, pointThree, pointFour):
+    #pointOne and pointTwo form line segment 1, pointThree and pointFour form line segment 2
+    tTop = np.array([[pointOne[0] - pointThree[0], pointThree[0] - pointFour[0]],[pointOne[1] - pointThree[1], pointThree[1] - pointFour[1]]])
+    tBot = np.array([[pointOne[0] - pointTwo[0], pointThree[0] - pointFour[0]],[pointOne[1] - pointTwo[1], pointThree[1] - pointFour[1]]])
+    t = np.linalg.det(tTop)/np.linalg.det(tBot)
+    uTop = np.array([[pointOne[0] - pointThree[0], pointOne[0] - pointTwo[0]], [pointOne[1] - pointThree[1], pointOne[1] - pointTwo[1]]])
+    uBot = np.array([[pointOne[0] - pointTwo[0], pointThree[0] - pointFour[0]], [pointOne[1] - pointTwo[1], pointThree[1] - pointFour[1]]])
+    u = np.linalg.det(uTop)/np.linalg.det(uBot)
+    print(t, u)
+    return np.array([t, u])
+
+def lineSegmentIntersectBool(paramTU):
+    if(0 <= paramTU[0] <= 1) and (0 <= paramTU[1] <= 1):
+        return True
+    else:
+        return False
+
+def does_segment_intersect_circle(pointOne, pointTwo, circle_center, radius):
+
+    roboRadius = 0.5
+    startToCenter = math.sqrt((circle_center[0] - pointOne[0])**2 + (circle_center[1] - pointOne[1])**2)
+    endToCenter = math.sqrt((circle_center[0] - pointTwo[0])**2 + (circle_center[1] - pointTwo[1])**2)
+    if (startToCenter <= radius) or (endToCenter <= radius):
+        return True
+
+    slope = getSlope(pointOne, pointTwo)
+
+    slopePerp = -(1 / slope) #get perp slope
+    hypo = math.sqrt(1**2 + slopePerp**2)
+
+    offset = getOffset(slopePerp, radius, hypo)
+
+    pointThree = circle_center + offset
+    pointFour = circle_center - offset
+
+    side = whichSide(pointOne, pointTwo, circle_center)
+    if(side == 0):
+        return True
+    
+    print(slope, side)
+    roboRadiusOffset = getOffset(slopePerp, roboRadius, hypo)
+    pointOneOff = np.array([0, 0])
+    pointTwoOff = np.array([0, 0])
+    if ((side > 0) and (slope > 0)) or ((side < 0) and (slope < 0)):
+        pointOneOff = pointOne + roboRadiusOffset
+        pointTwoOff = pointTwo + roboRadiusOffset
+    elif ((side > 0) and (slope < 0)) or ((side < 0) and (slope > 0)):
+        pointOneOff = pointOne - roboRadiusOffset
+        pointTwoOff = pointTwo - roboRadiusOffset
+
+    print(pointOneOff, pointTwoOff)
+
+    tu = lineSegmentIntersectParam(pointOneOff, pointTwoOff, pointThree, pointFour)
+    TorF = lineSegmentIntersectBool(tu)
+    t = tu[0]
+    u = tu[1]
+    return TorF
+
+def whichSide(pointOne, pointTwo, circleCenter):
+    determinant = (pointTwo[0] - pointOne[0]) * (circleCenter[1] - pointOne[1]) - (pointTwo[1] - pointOne[1]) * (circleCenter[0] - pointOne[0])
+    if (determinant > 0):
+        return -1
+    elif(determinant < 0):
+        return 1
+    else:
+        return 0
+
+def getSlope(pointOne, pointTwo):
+    slope = (pointTwo[1] - pointOne[1]) / (pointTwo[0] - pointOne[0])
+    return slope
+
+def getOffset(slope, radius, hypo):
+    xOffset = 1 * radius / hypo
+    yOffset = slope * radius / hypo
+    result = np.array([xOffset, yOffset])
+    return result
+
+
+segment_start = np.array([1, 10])
+segment_end = np.array([5, 1])
+circle_center = np.array([5, 10])
+radius = math.sqrt(5)
+circle_center_2 = np.array([0.25, 4.05])
+does_intersect = does_segment_intersect_circle(segment_start, segment_end, circle_center, radius)
+print(whichSide(segment_start, segment_end, circle_center))
+print(whichSide(segment_start, segment_end, circle_center_2))
+
+print(does_intersect)
+
+t1 = np.array([0, -7])
+t2 = np.array([1, -10.4])
+d1 = np.array([0, -4])
+d2 = np.array([1, -1.4])
+lineIntersection = lineIntersectVector(d1, d2, t1, t2)
+print(lineIntersection)
